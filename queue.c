@@ -203,13 +203,37 @@ list_ele_t *merge(list_ele_t *l1, list_ele_t *l2)
     if (!l1)
         return l2;
 
+    list_ele_t *head, *tmp;
     if (strcmp(l1->value, l2->value) <= 0) {
-        l1->next = merge(l1->next, l2);
-        return l1;
+        head = l1;
+        tmp = l1;
+        l1 = l1->next;
     } else {
-        l2->next = merge(l1, l2->next);
-        return l2;
+        head = l2;
+        tmp = l2;
+        l2 = l2->next;
     }
+
+    while (l1 || l2) {
+        if (l1 && l2) {
+            if (strcmp(l1->value, l2->value) <= 0) {
+                tmp->next = l1;
+                l1 = l1->next;
+            } else {
+                tmp->next = l2;
+                l2 = l2->next;
+            }
+            tmp = tmp->next;
+        } else if (l1 && !l2) {
+            tmp->next = l1;
+            break;
+        } else if (!l1 && l2) {
+            tmp->next = l2;
+            break;
+        }
+    }
+
+    return head;
 }
 
 
@@ -227,74 +251,10 @@ list_ele_t *merge_sort_list(list_ele_t *head)
     fast = slow->next;
     slow->next = NULL;
 
-    list_ele_t *tmp = head;
     list_ele_t *l1, *l2;
-    int size = 0;
-    while (tmp->next) {
-        tmp = tmp->next;
-        ++size;
-    }
-    if (size > 128) {
-        l1 = merge_sort_list(head);
-    } else {
-        l1 = insertion_sort_list(head);
-    }
-
-    tmp = fast;
-    size = 0;
-    while (tmp->next) {
-        tmp = tmp->next;
-        ++size;
-    }
-    if (size > 128) {
-        l2 = merge_sort_list(fast);
-    } else {
-        l2 = insertion_sort_list(fast);
-    }
-
+    l1 = merge_sort_list(head);
+    l2 = merge_sort_list(fast);
     return merge(l1, l2);
-}
-
-list_ele_t *insertion_sort_list(list_ele_t *head)
-{
-    if (!head)
-        return NULL;
-    list_ele_t *tmp = head;
-
-    int size = 0;
-    while (tmp) {
-        ++size;
-        tmp = tmp->next;
-    }
-
-    list_ele_t *curr = head->next;  // cur is the next element  of sorted list
-    list_ele_t *prev;               // prev->next is cur
-    list_ele_t *tail = head;        // tail indicated the tail of sorted list
-
-    for (int i = 1; i < size; i++) {
-        tmp = head;
-        prev = head;
-        for (int j = 0; j < i && strcmp(tmp->value, curr->value) <= 0;
-             j++) {  // find the location to be inserted
-            tmp = tmp->next;
-            if (j != 0)
-                prev = prev->next;
-        }
-        if (tmp == head) {
-            tail->next = curr->next;
-            curr->next = head;
-            head = curr;
-        } else if (tmp == curr) {
-            tail = tail->next;
-        } else {
-            prev->next = curr;
-            tail->next = curr->next;
-            curr->next = tmp;
-        }
-        curr = tail->next;
-    }
-
-    return head;
 }
 
 void q_sort(queue_t *q)
