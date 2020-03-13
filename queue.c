@@ -5,6 +5,7 @@
 #include "harness.h"
 #include "queue.h"
 
+static list_ele_t *merge_sort_list(list_ele_t *head);
 /*
  * Create empty queue.
  * Return NULL if could not allocate space.
@@ -120,25 +121,21 @@ bool q_insert_tail(queue_t *q, char *s)
  */
 bool q_remove_head(queue_t *q, char *sp, size_t bufsize)
 {
-    if (!q)
-        return false;
-    if (q->size == 0)
+    if (!q || q->size == 0)
         return false;
     list_ele_t *tmp = q->head;
     q->head = q->head->next;
+    bool ret = false;
     if (sp) {
         memset(sp, '\0', bufsize);
         strncpy(sp, tmp->value, bufsize - 1);
-        free(tmp->value);
-        free(tmp);
-        --q->size;
-        return true;
-    } else {
-        free(tmp->value);
-        free(tmp);
-        --q->size;
-        return false;
+        ret = true;
     }
+
+    free(tmp->value);
+    free(tmp);
+    --q->size;
+    return ret;
 }
 
 /*
@@ -237,7 +234,7 @@ list_ele_t *merge(list_ele_t *l1, list_ele_t *l2)
 }
 
 
-list_ele_t *merge_sort_list(list_ele_t *head)
+static list_ele_t *merge_sort_list(list_ele_t *head)
 {
     if (!head || !head->next) {
         return head;
@@ -259,14 +256,12 @@ list_ele_t *merge_sort_list(list_ele_t *head)
 
 void q_sort(queue_t *q)
 {
-    if (q != NULL) {
-        if (q->size > 1) {
-            q->head = merge_sort_list(q->head);
-            list_ele_t *tmp = q->head;
-            while (tmp->next) {
-                tmp = tmp->next;
-            }
-            q->tail = tmp;
+    if (q && q->size > 1) {
+        q->head = merge_sort_list(q->head);
+        list_ele_t *tmp = q->head;
+        while (tmp->next) {
+            tmp = tmp->next;
         }
+        q->tail = tmp;
     }
 }
